@@ -9,20 +9,20 @@ log = core.getLogger()
 
 
 def formedness_check(f):
-    def new_f(obj, event):
+    def new_f(obj, ctx, event):
         log.info("checking packet formedness for: " + f.__name__)
         packet = event.parsed
         if not packet.parsed:
             log.warning('packet is improperly formed for: ' + f.__name__)
             return
-        f(obj, event)
+        f(obj, ctx, event)
     return new_f
 
 
 class HubTrait:
 
     @formedness_check
-    def handle_packet(self, event):
+    def handle_packet(self,ctx, event):
         packet = event.parsed
         packet_in = event.ofp
 
@@ -32,11 +32,12 @@ class HubTrait:
         action = of.ofp_action_output(port = of.OFPP_ALL)
         msg.actions.append(action)
 
-        self.connection.send(msg)
+        connection = ctx['connection']
+        connection.send(msg)
         log.info('processing event')
         
 
-class DynamicHub:
+class DynamicEvaluator:
 
     def __init__(self, connection, trait):
         self.connection = connection
@@ -45,7 +46,7 @@ class DynamicHub:
 
     def _handle_PacketIn (self, event):
         log.info('handling packet in event: ' + str(event))
-        self.trait.handle_packet(event)
+        self.trait.handle_packet({'connection': self.connection}, event)
 
     def _handle_PacketOut(self, event):
         log.info('handling packet out event: ' + str(event))
@@ -55,6 +56,6 @@ def launch():
     log.info('launching.')
     def start_hub(event):
         log.info('starting hub.')
-        DynamicHub(event.connection, HubTrait())
+        DynamicEvaluator(event.connection, HubTrait())
     core.openflow.addListenerByName('ConnectionUp', start_hub)
       
