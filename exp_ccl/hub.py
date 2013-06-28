@@ -33,8 +33,11 @@ def _handle_ConnectionUp (event):
   log.info("Hubifying %s", dpidToStr(event.dpid))
 
 def _handle_connection_up(event):
-  log.info('handling some issues.')
+  msg = of.ofp_flow_mod()
+  log.info('msg: ' + str(msg))
+  msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
+  event.connection.send(msg)
 
 def launch():
-  core.openflow.addListenerByName("ConnectionUp", _handle_ConnectionUp)
+  core.openflow.addListenerByName("ConnectionUp", _handle_connection_up)
   print 'this is some of dudez!!'
