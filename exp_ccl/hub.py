@@ -23,6 +23,7 @@ from pox.core import core
 import pox.openflow.libopenflow_01 as of
 from pox.lib.util import dpidToStr
 
+
 log = core.getLogger()
 
 
@@ -33,8 +34,9 @@ def _handle_ConnectionUp (event):
   log.info("Hubifying %s", dpidToStr(event.dpid))
 
 def _handle_connection_up(event):
+  log.info('running the connection up handler.')
   msg = of.ofp_flow_mod()
-  log.info('msg: ' + str(msg))
+  log.info(' msg: ' + str(msg))
   msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
   event.connection.send(msg)
 
