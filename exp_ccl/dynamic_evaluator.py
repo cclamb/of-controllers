@@ -7,6 +7,7 @@ from pox.lib.util import dpid_to_str
 from pox.lib.util import str_to_bool
 import time
 
+
 log = core.getLogger()
 
 
@@ -17,6 +18,26 @@ def formedness_check(f):
         if not packet.parsed:
             log.warning('packet is improperly formed for: ' + f.__name__)
             return
+        f(obj, ctx, event)
+    return new_f
+
+def locality_check(f):
+    def new_f(obj, ctx, event):
+        log.info('checking for local traffic we do not pass on')
+        packet = event.parsed
+        if packet.type == packet.LLDP_TYPE or packet.dst.isBridgeFiltered():
+            return
+        f(obj, ctx, event)
+    return new_f
+
+def looping_check(f):
+    def new_f(obj, ctx, event):
+        packet = event.parsed
+        port = obj.mac_to_port.get(packet.dst)
+        if port == event.port:
+             log.warning('same port for packet from %s -> %s on %s.%s.'
+                        % (packet.src, packet.dst, dpid_to_str(event.dpid), port))
+             return
         f(obj, ctx, event)
     return new_f
 
@@ -45,10 +66,9 @@ class L2LearningSwitchTrait(HubTrait):
         self.mac_to_port = {}
         super(L2LearningSwitchTrait, self).__init__()
 
-    def _is_local_traffic(self, packet):
-        return packet.type == packet.LLDP_TYPE or packet.dst.isBridgeFiltered()
-
     @formedness_check
+    @locality_check
+    @looping_check
     def handle_packet(self, ctx, event):
         #pdb.set_trace()
         msg = of.ofp_packet_out()
@@ -57,20 +77,15 @@ class L2LearningSwitchTrait(HubTrait):
 
         self.mac_to_port[packet.src] = event.port
 
-        # This could also be done in a decorator
-        if self._is_local_traffic(packet):
-            # this is much more complex in example.
-            return
-
         if packet.dst.is_multicast:
             HubTrait().handle_packet({'connection': ctx['connection']}, event)
             return
 
         port = self.mac_to_port[packet.dst]
-        if port == event.port:
-            log.warning('same port for packet from %s -> %s on %s.%s.'
-                        % (packet.src, packet.dst, dpid_to_str(event.dpid), port))
-            return
+        #if port == event.port:
+        #    log.warning('same port for packet from %s -> %s on %s.%s.'
+        #                % (packet.src, packet.dst, dpid_to_str(event.dpid), port))
+        #    return
 
         log.info('installing flow for %s.%i -> %s.%i'
                  % (str(packet.src), event.port, str(packet.dst), port))
