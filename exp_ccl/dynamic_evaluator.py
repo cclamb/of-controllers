@@ -63,9 +63,24 @@ class L2LearningSwitchTrait(HubTrait):
             return
 
         if packet.dst.is_multicast:
-            HubTrait.handle_packet({'connection': ctx['connection']}, event)
+            HubTrait().handle_packet({'connection': ctx['connection']}, event)
             return
 
+        port = self.mac_to_port[packet.dst]
+        if port == event.port:
+            log.warning('same port for packet from %s -> %s on %s.%s.'
+                        % (packet.src, packet.dst, dpid_to_str(event.dpid), port))
+            return
+
+        log.info('installing flow for %s.%i -> %s.%i'
+                 % (str(packet.src), event.port, str(packet.dst), port))
+        msg = of.ofp_flow_mod()
+        msg.match = of.ofp_match.from_packet(packet, event.port)
+        msg.idle_timeout = 10
+        msg.hard_timeout = 30
+        msg.actions.append(of.ofp_action_output(port = port))
+        msg.data = event.ofp
+        ctx['connection'].send(msg)
         return
         
 
