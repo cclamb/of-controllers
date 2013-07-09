@@ -117,7 +117,7 @@ class DynamicEvaluator:
 def launch():
     log.info('launching.')
     def start_hub(event):
-        log.info('starting hub.')
+        log.info('starting L2 learning switch.')
         DynamicEvaluator(event.connection, L2LearningSwitchTrait())
     core.openflow.addListenerByName('ConnectionUp', start_hub)
       
