@@ -78,14 +78,15 @@ class L2LearningSwitchTrait(HubTrait):
         self.mac_to_port[packet.src] = event.port
 
         if packet.dst.is_multicast:
-            HubTrait().handle_packet({'connection': ctx['connection']}, event)
+            super(L2LearningSwitchTrait, self).handle_packet({'connection': ctx['connection']}, event)
             return
 
-        port = self.mac_to_port[packet.dst]
-        #if port == event.port:
-        #    log.warning('same port for packet from %s -> %s on %s.%s.'
-        #                % (packet.src, packet.dst, dpid_to_str(event.dpid), port))
-        #    return
+        port = self.mac_to_port.get(packet.dst, None)
+        
+        if port == None:
+            log.info('we do not have the port; revert to hub')
+            super(L2LearningSwitchTrait, self).handle_packet({'connection': ctx['connection']}, event)
+            return
 
         log.info('installing flow for %s.%i -> %s.%i'
                  % (str(packet.src), event.port, str(packet.dst), port))
@@ -96,7 +97,6 @@ class L2LearningSwitchTrait(HubTrait):
         msg.actions.append(of.ofp_action_output(port = port))
         msg.data = event.ofp
         ctx['connection'].send(msg)
-        return
         
 
 class DynamicEvaluator:
