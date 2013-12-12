@@ -9,6 +9,10 @@ import time
 
 from decorators import formedness_check
 
+
+log = core.getLogger()
+
+
 class HubTrait(object):
 
     @formedness_check
