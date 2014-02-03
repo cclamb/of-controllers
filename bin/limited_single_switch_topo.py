@@ -9,6 +9,8 @@ from mininet.link import Link
 from mininet.util import dumpNodeConnections
 from mininet.log import setLogLevel
 
+linkopts = {'bw': 10, 'delay': '5ms', 'loss': 10, 'max_queue_size': 1000, 'use_htb': True}
+
 
 class SingleSwitchTopo(Topo):
 
@@ -21,7 +23,7 @@ class SingleSwitchTopo(Topo):
             host = self.addHost('h%s' % (h + 1), cpu = .5 / n)
             #host = self.addHost('h%s' % (h + 1))
             # 10 Mbps with 5 ms delay, 10% packet loss, 1000 packet queue
-            self.addLink(host, switch, bw = 100, delay = '5ms', loss = 10, max_queue_size = 1000, use_htb = True)
+            self.addLink(host, switch, **linkopts)
             #self.addLink(host, switch)
             
 

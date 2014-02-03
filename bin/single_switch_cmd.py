@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from time import sleep
+
 from mininet.topo import Topo
 from mininet.net import Mininet
 from mininet.util import dumpNodeConnections
@@ -30,13 +32,36 @@ def simpleTest():
     print "Testing some commands..."
     h1 = net.get('h1')
 
-    print "\tspawn a command in the bg in h1..."
+    print "\tspawn two commands in the bg in h1..."
+    h1.cmd('sleep 3 &')
+    pid1 = int(h1.cmd('echo $!'))
+    print "\tPID: %d" %  (pid1)
     h1.cmd('sleep 10 &')
-    pid = int(h1.cmd('echo $!'))
+    pid2 = int(h1.cmd('echo $!'))
+    print "\tPID: %d" %  (pid2)
+    # print "\t...and the process table?"
+    # print "%s" % (h1.cmd('ps -f | grep sleep'))
+    # print "\tCool, let's wait now..."
+    # h1.cmd('wait', pid1, pid2)
+    print "\tAdios processes..."
+    h1.cmd('kill -9 ', pid1, pid2)
 
-    print "\tgrab the pid and kill"
-    h1.cmd('kill %while')
-    print "\tPID: %d\n" % (pid)
+    # Wait to clear messages to console in shell; otherwise,
+    # they'll be picked up in the below background commands
+    # where we extract PIDs.
+    sleep(1)
+
+    # Looping and waiting for good tymez...
+    print "\tLooping and waiting..."
+    pids = []
+    for i in range(10):
+        h1.cmd('sleep %s &' % (i + 1))
+        pids.append(int(h1.cmd('echo $!')))
+
+    print "\tpids: %s" % (pids)
+
+    # Wait for *all* the background processes to complete...
+    h1.cmd('wait', *pids)
 
     print "Testing network connectivity..."
     net.pingAll()
