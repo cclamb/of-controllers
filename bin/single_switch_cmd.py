@@ -21,14 +21,7 @@ class SingleSwitchTopo(Topo):
             host = self.addHost('h%s' % (h+1))
             self.addLink(host, switch)
 
-def simpleTest():
-    """Create and test a simple network"""
-    topo = SingleSwitchTopo(n = 5)
-    net = Mininet(topo)
-    net.start()
-    print "Dumping host connections..."
-    dumpNodeConnections(net.hosts)
-
+def testSimpleCmd(net):
     print "Testing some commands..."
     h1 = net.get('h1')
 
@@ -46,12 +39,9 @@ def simpleTest():
     print "\tAdios processes..."
     h1.cmd('kill -9 ', pid1, pid2)
 
-    # Wait to clear messages to console in shell; otherwise,
-    # they'll be picked up in the below background commands
-    # where we extract PIDs.
-    sleep(1)
-
+def testLoopCmds(net):
     # Looping and waiting for good tymez...
+    h1 = net.get('h1')
     print "\tLooping and waiting..."
     pids = []
     for i in range(10):
@@ -62,6 +52,29 @@ def simpleTest():
 
     # Wait for *all* the background processes to complete...
     h1.cmd('wait', *pids)
+
+def testSendCmds(net):
+    print "\tSending commands to the hosts..."
+    for h in net.hosts:
+        h.sendCmd('sleep 10')
+
+    print "\tWaiting for the output..."
+    results = {}
+    for h in net.hosts:
+        results[h.name] = h.waitOutput()
+    
+    print "\tWhat do the host say?"
+    print results
+
+def simpleTest():
+    """Create and test a simple network"""
+    topo = SingleSwitchTopo(n = 5)
+    net = Mininet(topo)
+    net.start()
+    print "Dumping host connections..."
+    dumpNodeConnections(net.hosts)
+
+    testSendCmds(net)
 
     print "Testing network connectivity..."
     net.pingAll()
