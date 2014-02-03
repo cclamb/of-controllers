@@ -56,7 +56,7 @@ def testLoopCmds(net):
 def testSendCmds(net):
     print "\tSending commands to the hosts..."
     for h in net.hosts:
-        h.sendCmd('sleep 10')
+        h.sendCmd('sleep 10; echo "Done on %s! Yay!"' % (h.name))
 
     print "\tWaiting for the output..."
     results = {}
