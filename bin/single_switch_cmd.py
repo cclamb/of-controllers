@@ -26,11 +26,23 @@ def simpleTest():
     net.start()
     print "Dumping host connections..."
     dumpNodeConnections(net.hosts)
+
+    print "Testing some commands..."
+    h1 = net.get('h1')
+
+    print "\tspawn a command in the bg in h1..."
+    h1.cmd('sleep 10 &')
+    pid = int(h1.cmd('echo $!'))
+
+    print "\tgrab the pid and kill"
+    h1.cmd('kill %while')
+    print "\tPID: %d\n" % (pid)
+
     print "Testing network connectivity..."
     net.pingAll()
     net.stop()
 
 if __name__ == '__main__':
-    setLogLevel('info')
+    setLogLevel('output')
     simpleTest()
     
