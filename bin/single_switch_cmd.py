@@ -142,8 +142,8 @@ def testMonitorSimple(net, n = 3, seconds = 10):
         if h:
             print '%s: %s' % (h.name, line)
         if time() >= endTime:
-            for p in popens.values():
-                p.send_signal(SIGINT)
+            for proc in popens.values():
+                proc.send_signal(SIGINT)
     net.stop()
 
 def simpleTest():
