@@ -5,8 +5,8 @@ from pox.lib.util import str_to_bool
 import pdb
 import time
 import pox.openflow.libopenflow_01 as of
+import pox.lib.packet as pkt
 
-from l2_learning_switch_trait import L2LearningSwitchTrait
 from util.event.decorators import formedness_check
 
 
@@ -39,17 +39,30 @@ class EventSink(object):
     def _handle_statsReply(self, event):
         log.info('==> Stats from %s' % str(self.__class__))
 
-class Hub(object):
+
+class Inspector(object):
+
+    def _handle_PacketIn(self, event):
+        packet = event.parsed
+        log.info('inspecting packet %s received on %d' % (type(packet), event.port))
+        if packet.type == pkt.ethernet.ARP_TYPE:
+            if packet.payload.opcode == pkt.arp.REQUEST:
+                log.info('arp request: \n\t %s' % str(packet))
+                log.info('\t%s' % packet.dump())
+            if packet.payload.opcode == pkt.arp.REPLY:
+                log.info ('arp reply: \n\t %s' % str(packet))
+                log.info('\t%s' % packet.dump())
+        else:
+            log.info('other packet: \n\t %s' % str(packet))
+            log.info('\t%s' % packet.dump())
+
+
+class Hub(object):        
 
     @formedness_check
     def _handle_PacketIn(self, event):
-
         packet = event.parsed
         packet_in = event.ofp
-
-        log.info(str(event))
-        log.info('Packet type %s received on %d' % (type(packet), event.port))
-        log.info('Packet Contents: \n\t %s' % packet.dump())
 
         msg = of.ofp_packet_out()
         msg.data = packet_in
@@ -73,6 +86,7 @@ def launch_on_event():
     def start_hub(event):
         log.info('starting hub.')
         event.connection.addListeners(Hub())
+        event.connection.addListeners(Inspector())
 
     core.openflow.addListenerByName('ConnectionUp', start_hub)
 

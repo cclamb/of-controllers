@@ -3,6 +3,8 @@
 __author__ = 'cclamb'
 
 from code import InteractiveConsole
+from pox.boot import boot
+
 
 import thread as thread
 import time
@@ -25,11 +27,13 @@ def get_count():
 
 def thread_main():
     global count, mutex
+    boot()
     while True:
         time.sleep(1)
         mutex.acquire()
         count += 1
         mutex.release()
+        
 
 
 def run_main():
