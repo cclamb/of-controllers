@@ -1,10 +1,8 @@
-
-import pdb
-
 from pox.core import core
 from pox.lib.util import dpid_to_str
 from pox.lib.util import str_to_bool
 
+import pdb
 import time
 import pox.openflow.libopenflow_01 as of
 
@@ -51,12 +49,20 @@ class Hub(object):
         msg = of.ofp_packet_out()
         msg.data = packet_in
 
+        pdb.set_trace()
+
         action = of.ofp_action_output(port = of.OFPP_ALL)
         msg.actions.append(action)
         event.connection.send(msg)
 
+class Switch(object):
 
-def launch():
+    @formedness_check
+    def _handle_PacketIn(self, event):
+        packet = event.parsed
+
+
+def launch_on_event():
     log.info('launching.')
 
     def start_hub(event):
@@ -65,4 +71,11 @@ def launch():
 
     core.openflow.addListeners(EventSink())
     core.openflow.addListenerByName('ConnectionUp', start_hub)
+
+def launch_on_mod():
+    log.info('launching and starting hub.')
+    core.openflow.addListeners(Hub())
+
+def launch():
+    launch_on_mod()
     
