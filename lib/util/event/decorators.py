@@ -12,7 +12,6 @@ log = core.getLogger()
 
 def formedness_check(f):
     def new_f(obj, event):
-        log.info("checking packet formedness for: " + f.__name__)
         packet = event.parsed
         if not packet.parsed:
             log.warning('packet is improperly formed for: ' + f.__name__)
@@ -22,9 +21,9 @@ def formedness_check(f):
 
 def locality_check(f):
     def new_f(obj, event):
-        log.info('checking for local traffic we do not pass on')
         packet = event.parsed
         if packet.type == packet.LLDP_TYPE or packet.dst.isBridgeFiltered():
+            log.info('we are not passing on' % str(packet))
             return
         f(obj, event)
     return new_f

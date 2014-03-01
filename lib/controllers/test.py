@@ -43,13 +43,18 @@ class Hub(object):
 
     @formedness_check
     def _handle_PacketIn(self, event):
+
         packet = event.parsed
         packet_in = event.ofp
+
+        log.info(str(event))
+        log.info('Packet type %s received on %d' % (type(packet), event.port))
+        log.info('Packet Contents: \n\t %s' % packet.dump())
 
         msg = of.ofp_packet_out()
         msg.data = packet_in
 
-        pdb.set_trace()
+        # pdb.set_trace()
 
         action = of.ofp_action_output(port = of.OFPP_ALL)
         msg.actions.append(action)
@@ -69,7 +74,6 @@ def launch_on_event():
         log.info('starting hub.')
         event.connection.addListeners(Hub())
 
-    core.openflow.addListeners(EventSink())
     core.openflow.addListenerByName('ConnectionUp', start_hub)
 
 def launch_on_mod():
@@ -77,5 +81,5 @@ def launch_on_mod():
     core.openflow.addListeners(Hub())
 
 def launch():
-    launch_on_mod()
+    launch_on_event()
     
