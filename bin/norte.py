@@ -5,16 +5,23 @@ __author__ = 'cclamb'
 from code import InteractiveConsole
 from pox.boot import boot
 
-
 import thread as thread
 import time
 import sys
 
 NAME = 'norte'
-BANNER = 'Welcome to %s.\nTo exit, use either ctrl-D or exit().' % NAME
+ADDITIONAL_ARGS = ['log.level', '--DEBUG', 'log', '--no-default', '--file=norte.log']
+CONTROLLER_NAME = 'controllers.test'
+BANNER = '''Welcome to %s.
+For this session, we are using the controller %s.
+To exit, use either ctrl-D or exit().''' % (NAME, CONTROLLER_NAME)
 
 count = 0
 mutex = thread.allocate_lock()
+
+
+sys.argv.extend(ADDITIONAL_ARGS)
+sys.argv.append(CONTROLLER_NAME)
 
 
 def get_count():
@@ -25,9 +32,12 @@ def get_count():
     return cnt_buffer
 
 
+def pox_main():
+    boot()
+
+
 def thread_main():
     global count, mutex
-    boot()
     while True:
         time.sleep(1)
         mutex.acquire()
@@ -35,10 +45,10 @@ def thread_main():
         mutex.release()
         
 
-
 def run_main():
     global NAME
     thread.start_new_thread(thread_main, ())
+    thread.start_new_thread(pox_main, ())
     sys.ps1 = '(%s) >>> ' % NAME
     sys.ps2 = '(%s) ... ' % NAME
     console = InteractiveConsole(globals())
