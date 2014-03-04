@@ -24,6 +24,34 @@ sys.argv.extend(ADDITIONAL_ARGS)
 sys.argv.append(CONTROLLER_NAME)
 
 
+class Network(object):
+
+    def __init__(self):
+        self.hosts = []
+
+    def add_host(self, host):
+        self.hosts.append(host)
+
+    def add_hosts(self, hosts):
+        self.hosts.extend(hosts)
+
+
+class NetworkManager(object):
+
+    def __init__(self, networks):
+        self.networks = []
+        self.networks.extend(networks)
+        return
+
+    def match(self, host1, host2):
+        for network in self.networks:
+            cnt1 = network.count(host1)
+            cnt2 = network.count(host2)
+            if cnt1 > 0 and cnt2 > 0:
+                return True
+        return False
+
+
 def get_count():
     global count, mutex
     mutex.acquire()
