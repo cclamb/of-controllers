@@ -35,6 +35,9 @@ class Network(object):
     def add_hosts(self, hosts):
         self.hosts.extend(hosts)
 
+    def count(self, token):
+        return self.hosts.count(token)
+
 
 class NetworkManager(object):
 
