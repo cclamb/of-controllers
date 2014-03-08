@@ -19,44 +19,56 @@ For this session, we are using the controller %s.
 To exit, use either ctrl-D or exit().''' % (NAME, CONTROLLER_NAME)
 
 mutex = thread.allocate_lock()
-networks = {}
+notify_mutex = thread.allocate_lock()
+
 
 sys.argv.extend(ADDITIONAL_ARGS)
 sys.argv.append(CONTROLLER_NAME)
 
 
-def set_networks(nets):
-    global mutex, networks
-    mutex.acquire()
-    networks = deepcopy(nets)
-    mutex.release()
+class InteractionManager(object):
 
-def get_networks():
-    global mutex, networks
-    nets = {}
-    mutex.acquire()
-    nets = deepcopy(networks)
-    mutex.release()
-    return nets
+    def __init__(self):
+        self._listeners = []
+        self._networks = {}
+
+    def add_listener(self, listener):
+        global notify_mutex
+        notify_mutex.acquire()
+        self._listeners.append(listener)
+        notify_mutex.release()
+    
+    def _notify_listeners(self):
+        global mutex, notify_mutex
+        mutex.acquire()
+        nets = deepcopy(self._networks)
+        mutex.release()
+        notify_mutex.acquire()
+        for listener in self._listeners:
+            listener(deepcopy(nets))
+        notify_mutex.release()
+    
+    def set_networks(self, nets):
+        global mutex, networks
+        mutex.acquire()
+        self._networks = deepcopy(nets)
+        mutex.release()
+
+    def get_networks(self):
+        global mutex, networks
+        nets = {}
+        mutex.acquire()
+        nets = deepcopy(self._networks)
+        mutex.release()
+        return nets
 
 
 def pox_main():
     boot()
-
-
-def thread_main():
-    global count, mutex
-    while True:
-        time.sleep(1)
-        # This thread will execute the controller
-        #mutex.acquire()
-        #count += 1
-        #mutex.release()
         
 
 def run_main():
     global NAME
-    thread.start_new_thread(thread_main, ())
     thread.start_new_thread(pox_main, ())
     sys.ps1 = '(%s) >>> ' % NAME
     sys.ps2 = '(%s) ... ' % NAME
@@ -66,6 +78,8 @@ def run_main():
 
 
 return_value = 0
+manager = InteractionManager()
+
 
 if __name__ == '__main__':
     return_value = run_main()
