@@ -4,6 +4,8 @@ __author__ = 'cclamb'
 
 from code import InteractiveConsole
 from pox.boot import boot
+from copy import deepcopy
+from util.network import *
 
 import thread as thread
 import time
@@ -16,51 +18,26 @@ BANNER = '''Welcome to %s.
 For this session, we are using the controller %s.
 To exit, use either ctrl-D or exit().''' % (NAME, CONTROLLER_NAME)
 
-count = 0
 mutex = thread.allocate_lock()
-
+networks = {}
 
 sys.argv.extend(ADDITIONAL_ARGS)
 sys.argv.append(CONTROLLER_NAME)
 
 
-class Network(object):
-
-    def __init__(self):
-        self.hosts = []
-
-    def add_host(self, host):
-        self.hosts.append(host)
-
-    def add_hosts(self, hosts):
-        self.hosts.extend(hosts)
-
-    def count(self, token):
-        return self.hosts.count(token)
-
-
-class NetworkManager(object):
-
-    def __init__(self, networks):
-        self.networks = []
-        self.networks.extend(networks)
-        return
-
-    def match(self, host1, host2):
-        for network in self.networks:
-            cnt1 = network.count(host1)
-            cnt2 = network.count(host2)
-            if cnt1 > 0 and cnt2 > 0:
-                return True
-        return False
-
-
-def get_count():
-    global count, mutex
+def set_networks(nets):
+    global mutex, networks
     mutex.acquire()
-    cnt_buffer = count
+    networks = deepcopy(nets)
     mutex.release()
-    return cnt_buffer
+
+def get_networks():
+    global mutex, networks
+    nets = {}
+    mutex.acquire()
+    nets = deepcopy(networks)
+    mutex.release()
+    return nets
 
 
 def pox_main():
@@ -71,9 +48,10 @@ def thread_main():
     global count, mutex
     while True:
         time.sleep(1)
-        mutex.acquire()
-        count += 1
-        mutex.release()
+        # This thread will execute the controller
+        #mutex.acquire()
+        #count += 1
+        #mutex.release()
         
 
 def run_main():
