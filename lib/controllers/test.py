@@ -1,17 +1,36 @@
+__author__ = 'cclamb'
+
 from pox.core import core
 from pox.lib.util import dpid_to_str
 from pox.lib.util import str_to_bool
+from util.network import NetworkManager
 
 import pdb
 import time
 import pox.openflow.libopenflow_01 as of
 import pox.lib.packet as pkt
+import thread as thread
 
 from util.event.decorators import formedness_check
 
 
 log = core.getLogger()
 
+
+class MyNetworkManager(NetworkManager):
+
+    def __init__(self, nets = {}):
+        super(MyNetworkManager, self).__init__()
+        self._mutex = thread.allocate_lock()
+
+    def data_listener(self, nets):
+        self._mutex.acquire()
+        self._networks = nets
+        self._mutex.release()
+
+
+local_manager = MyNetworkManager()
+        
 
 class EventSink(object):
 
@@ -63,12 +82,8 @@ class Hub(object):
     def _handle_PacketIn(self, event):
         packet = event.parsed
         packet_in = event.ofp
-
         msg = of.ofp_packet_out()
         msg.data = packet_in
-
-        # pdb.set_trace()
-
         action = of.ofp_action_output(port = of.OFPP_ALL)
         msg.actions.append(action)
         event.connection.send(msg)
@@ -80,10 +95,14 @@ class Switch(object):
         packet = event.parsed
 
 
+
 def launch_on_event():
     log.info('launching.')
 
     def start_hub(event):
+        #global manager
+        #log.info('configuring manager with listeners.')
+        #manager.add_listener(local_manager.data_listener)
         log.info('starting hub.')
         event.connection.addListeners(Hub())
         event.connection.addListeners(Inspector())

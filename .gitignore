@@ -35,3 +35,7 @@ nosetests.xml
 
 # logs
 *.log
+
+# Editor Temporary Files
+\#*
+.\#*

@@ -18,7 +18,7 @@ BANNER = '''Welcome to %s.
 For this session, we are using the controller %s.
 To exit, use either ctrl-D or exit().''' % (NAME, CONTROLLER_NAME)
 
-mutex = thread.allocate_lock()
+
 notify_mutex = thread.allocate_lock()
 
 
@@ -39,37 +39,36 @@ class InteractionManager(object):
         notify_mutex.release()
     
     def _notify_listeners(self):
-        global mutex, notify_mutex
-        mutex.acquire()
+        global notify_mutex
         nets = deepcopy(self._networks)
-        mutex.release()
         notify_mutex.acquire()
         for listener in self._listeners:
             listener(deepcopy(nets))
         notify_mutex.release()
     
     def set_networks(self, nets):
-        global mutex, networks
-        mutex.acquire()
+        global networks
         self._networks = deepcopy(nets)
-        mutex.release()
 
     def get_networks(self):
-        global mutex, networks
+        global networks
         nets = {}
-        mutex.acquire()
         nets = deepcopy(self._networks)
-        mutex.release()
         return nets
 
 
-def pox_main():
+manager = InteractionManager()
+
+
+def pox_main(mgr):
+    global manager
+    manager = mgr
     boot()
         
 
 def run_main():
-    global NAME
-    thread.start_new_thread(pox_main, ())
+    global manager
+    thread.start_new_thread(pox_main, (manager,))
     sys.ps1 = '(%s) >>> ' % NAME
     sys.ps2 = '(%s) ... ' % NAME
     console = InteractiveConsole(globals())
@@ -78,7 +77,6 @@ def run_main():
 
 
 return_value = 0
-manager = InteractionManager()
 
 
 if __name__ == '__main__':
