@@ -4,6 +4,7 @@ from pox.core import core
 from pox.lib.util import dpid_to_str
 from pox.lib.util import str_to_bool
 from util.network import NetworkManager
+from controllers.interaction_manager import get_manager
 
 import pdb
 import time
@@ -17,6 +18,9 @@ from util.event.decorators import formedness_check
 log = core.getLogger()
 
 
+manager = get_manager()
+
+
 class MyNetworkManager(NetworkManager):
 
     def __init__(self, nets = {}):
@@ -24,6 +28,7 @@ class MyNetworkManager(NetworkManager):
         self._mutex = thread.allocate_lock()
 
     def data_listener(self, nets):
+        log.info('setting new network: %s' % nets)
         self._mutex.acquire()
         self._networks = nets
         self._mutex.release()
@@ -100,9 +105,9 @@ def launch_on_event():
     log.info('launching.')
 
     def start_hub(event):
-        #global manager
-        #log.info('configuring manager with listeners.')
-        #manager.add_listener(local_manager.data_listener)
+        global manager
+        log.info('configuring manager with listeners.')
+        manager.add_listener(local_manager.data_listener)
         log.info('starting hub.')
         event.connection.addListeners(Hub())
         event.connection.addListeners(Inspector())

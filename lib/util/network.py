@@ -18,11 +18,14 @@ def create_network_json(json):
 class NetworkManager(object):
 
     def __init__(self, networks = {}):
-        self.networks = networks
+        self._networks = networks
         return
 
+    def set_networks(self,nets):
+        self._networks = nets
+
     def add_network(self, network):
-        self.networks.update(network)
+        self._networks.update(network)
 
     def match(self, host1, host2):
         for network in self.networks:
