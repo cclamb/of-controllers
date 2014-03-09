@@ -85,6 +85,7 @@ class Hub(object):
 
     @formedness_check
     def _handle_PacketIn(self, event):
+        pdb.set_trace()
         packet = event.parsed
         packet_in = event.ofp
         msg = of.ofp_packet_out()
@@ -93,12 +94,21 @@ class Hub(object):
         msg.actions.append(action)
         event.connection.send(msg)
 
+class RestrictingHub(Hub):
+
+    def __init(self, manager):
+        self._manager = manager
+
+    @formedness_check
+    def _handle_PacketIn(self, event):
+        if self._manager.match(src_ip, dest_ip):
+            super(ResetrictingHub, self)._handle_PacketIn(self, event)
+
 class Switch(object):
 
     @formedness_check
     def _handle_PacketIn(self, event):
         packet = event.parsed
-
 
 
 def launch_on_event():
