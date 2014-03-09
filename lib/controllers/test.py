@@ -68,27 +68,30 @@ class Inspector(object):
 
     def _handle_PacketIn(self, event):
         packet = event.parsed
-        log.info('inspecting packet %s received on %d' % (type(packet), event.port))
+        # log.info('inspecting packet %s received on %d' % (type(packet), event.port))
         if packet.type == pkt.ethernet.ARP_TYPE:
             if packet.payload.opcode == pkt.arp.REQUEST:
-                log.info('arp request: \n\t %s' % str(packet))
-                log.info('\t%s' % packet.dump())
+                log.info('arp request: %s' % str(packet))
+                # log.info('\t%s' % packet.dump())
             if packet.payload.opcode == pkt.arp.REPLY:
-                log.info ('arp reply: \n\t %s' % str(packet))
-                log.info('\t%s' % packet.dump())
+                log.info ('arp reply: %s' % str(packet))
+                # log.info('\t%s' % packet.dump())
+        elif packet.type == pkt.ethernet.IP_TYPE:
+            log.info('ip packet [%s -> %s]: %s' % \
+                         (packet.next.srcip, packet.next.dstip, str(packet)))
         else:
-            log.info('other packet: \n\t %s' % str(packet))
-            log.info('\t%s' % packet.dump())
+            log.info('other packet: %s' % str(packet))
+            # log.info('\t%s' % packet.dump())
 
 
 class Hub(object):        
 
     @formedness_check
     def _handle_PacketIn(self, event):
-        pdb.set_trace()
         packet = event.parsed
         packet_in = event.ofp
         msg = of.ofp_packet_out()
+        # pdb.set_trace()
         msg.data = packet_in
         action = of.ofp_action_output(port = of.OFPP_ALL)
         msg.actions.append(action)
