@@ -109,9 +109,39 @@ class RestrictingHub(Hub):
 
 class Switch(object):
 
+    def __init__(self):
+        self._port_map = {}
+        
     @formedness_check
     def _handle_PacketIn(self, event):
         packet = event.parsed
+        packet_in = event.ofp
+        msg = of.ofp_packet_out()
+
+        self._map_address(event.port, packet.src)
+
+        log.info('src switch port: %s, src: %s, dst: %s' \
+                     % (event.port, packet.src, packet.dst))
+
+        port = self._get_port_from_mac(packet.dst)
+
+        if port == None:
+            log.error('No mapping for mac address: %s', packet.dst)
+            return
+
+        # pdb.set_trace()
+        msg.data = packet_in
+        # action = of.ofp_action_output(port = of.OFPP_ALL)
+        action = of.ofp_action_output(port = port)
+        msg.actions.append(action)
+        event.connection.send(msg)
+
+    def _map_address(self, port, src):
+        if self._port_map.get(src) == None:
+            self._port_map[src] = port
+
+    def _get_port_from_mac(self, mac):
+        return self._port_map.get(mac)
 
 
 def launch_on_event():
@@ -121,8 +151,8 @@ def launch_on_event():
         global manager
         log.info('configuring manager with listeners.')
         manager.add_listener(local_manager.data_listener)
-        log.info('starting hub.')
-        event.connection.addListeners(Hub())
+        log.info('starting switch.')
+        event.connection.addListeners(Switch())
         event.connection.addListeners(Inspector())
 
     core.openflow.addListenerByName('ConnectionUp', start_hub)
