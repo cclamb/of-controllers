@@ -114,14 +114,21 @@ class Switch(object):
         
     @formedness_check
     def _handle_PacketIn(self, event):
+        global local_manager
         packet = event.parsed
-        packet_in = event.ofp
-        msg = of.ofp_packet_out()
+
+        if packet.type == pkt.ethernet.IPV6_TYPE:
+            return
 
         self._map_address(event.port, packet.src)
 
-        log.info('src switch port: %s, src: %s, dst: %s' \
-                     % (event.port, packet.src, packet.dst))
+        if packet.dst.is_multicast:
+            log.info('Broadcasting multicast: %s' % packet)
+            self._broadcast(event)
+            return
+
+        packet_in = event.ofp
+        msg = of.ofp_packet_out()
 
         port = self._get_port_from_mac(packet.dst)
 
@@ -129,10 +136,20 @@ class Switch(object):
             log.error('No mapping for mac address: %s', packet.dst)
             return
 
-        # pdb.set_trace()
+        if not local_manager.match(packet.src, packet.dst):
+            log.info('%s and %s not in same network.' % (packet.src, packet.dst))
+            return
+
+        log.info('Sending to %s on %s' % (packet.dst, port))
         msg.data = packet_in
-        # action = of.ofp_action_output(port = of.OFPP_ALL)
         action = of.ofp_action_output(port = port)
+        msg.actions.append(action)
+        event.connection.send(msg)
+
+    def _broadcast(self, event):
+        msg = of.ofp_packet_out()
+        msg.data = event.ofp
+        action = of.ofp_action_output(port = of.OFPP_ALL)
         msg.actions.append(action)
         event.connection.send(msg)
 
@@ -153,7 +170,7 @@ def launch_on_event():
         manager.add_listener(local_manager.data_listener)
         log.info('starting switch.')
         event.connection.addListeners(Switch())
-        event.connection.addListeners(Inspector())
+        # event.connection.addListeners(Inspector())
 
     core.openflow.addListenerByName('ConnectionUp', start_hub)
 
