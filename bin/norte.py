@@ -27,6 +27,14 @@ sys.argv.append(CONTROLLER_NAME)
 manager = get_manager()
 
 
+def initialize():
+    print('...initializing Norte environment...')
+    while manager.count < 1:
+        time.sleep(1)
+    nets = create_network_file('etc/mac-networks.js')
+    manager.set_networks(nets)
+
+
 def pox_main():
     boot()
 
@@ -36,7 +44,7 @@ def test_main():
     def listener(nets):
         print(nets)
     manager.add_listener(listener)
-    while True:
+    while True: # Do I need this?
         time.sleep(1)
          
 
@@ -47,6 +55,7 @@ def run_main():
     sys.ps1 = '(%s) >>> ' % NAME
     sys.ps2 = '(%s) ... ' % NAME
     console = InteractiveConsole(globals())
+    initialize()
     console.interact(BANNER)
     return 0
 

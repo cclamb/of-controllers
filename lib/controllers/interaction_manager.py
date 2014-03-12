@@ -13,6 +13,14 @@ class InteractionManager(object):
         self._listeners = []
         self._networks = {}
 
+    @property
+    def count(self):
+        global notify_mutex
+        notify_mutex.acquire()
+        count = len(self._listeners)
+        notify_mutex.release()
+        return count
+
     def add_listener(self, listener):
         global notify_mutex
         notify_mutex.acquire()

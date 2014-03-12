@@ -28,9 +28,11 @@ class NetworkManager(object):
         self._networks.update(network)
 
     def match(self, host1, host2):
-        for network in self._networks:
-            cnt1 = network.count(host1)
-            cnt2 = network.count(host2)
+        # print self._networks
+        for network in self._networks.values():
+            cnt1 = network.count(str(host1))
+            cnt2 = network.count(str(host2))
+            # print cnt1, cnt2, str(host1), str(host2)
             if cnt1 > 0 and cnt2 > 0:
                 return True
         return False
