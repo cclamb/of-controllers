@@ -64,6 +64,21 @@ class EventSink(object):
         log.info('==> Stats from %s' % str(self.__class__))
 
 
+class ArpInspector(object):
+
+    def _handle_PacketIn(self, event):
+        packet = event.parsed
+        if packet.type == pkt.ethernet.ARP_TYPE:
+            log.info('Dumping ARP packet')
+            self._dump_packets(packet)
+
+    def _dump_packets(self, packet):
+        log.info('\n %s' % packet.dump())
+        #p = packet.parse_next()
+        #if p is not None:
+        #    self._dump_packets(p)
+
+
 class Inspector(object):
 
     def _handle_PacketIn(self, event):
@@ -91,21 +106,11 @@ class Hub(object):
         packet = event.parsed
         packet_in = event.ofp
         msg = of.ofp_packet_out()
-        # pdb.set_trace()
         msg.data = packet_in
         action = of.ofp_action_output(port = of.OFPP_ALL)
         msg.actions.append(action)
         event.connection.send(msg)
 
-class RestrictingHub(Hub):
-
-    def __init(self, manager):
-        self._manager = manager
-
-    @formedness_check
-    def _handle_PacketIn(self, event):
-        if self._manager.match(src_ip, dest_ip):
-            super(ResetrictingHub, self)._handle_PacketIn(self, event)
 
 class Switch(object):
 
@@ -169,9 +174,9 @@ def launch_on_event():
         log.info('configuring manager with listeners.')
         manager.add_listener(local_manager.data_listener)
         log.info('starting switch.')
+        event.connection.addListeners(ArpInspector())
         event.connection.addListeners(Switch())
-        # event.connection.addListeners(Inspector())
-
+        
     core.openflow.addListenerByName('ConnectionUp', start_hub)
 
 def launch_on_mod():
