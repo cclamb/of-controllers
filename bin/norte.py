@@ -2,7 +2,6 @@
 
 __author__ = 'cclamb'
 
-from code import InteractiveConsole
 from pox.boot import boot
 from util.network import *
 from controllers.interaction_manager import InteractionManager, get_manager
@@ -10,10 +9,15 @@ from controllers.interaction_manager import InteractionManager, get_manager
 import thread as thread
 import time
 import sys
+import code
 
 
 NAME = 'norte'
-ADDITIONAL_ARGS = ['log.level', '--DEBUG', 'log', '--no-default', '--file=norte.log']
+ADDITIONAL_ARGS = ['log.level', 
+                   '--DEBUG', 
+                   'log', 
+                   '--no-default', 
+                   '--file=norte.log']
 CONTROLLER_NAME = 'controllers.test'
 BANNER = '''Welcome to %s.
 For this session, we are using the controller %s.
@@ -54,9 +58,12 @@ def run_main():
     thread.start_new_thread(test_main, ())
     sys.ps1 = '(%s) >>> ' % NAME
     sys.ps2 = '(%s) ... ' % NAME
-    console = InteractiveConsole(globals())
+    #console = code.InteractiveConsole(globals())
     initialize()
-    console.interact(BANNER)
+    code.interact(BANNER, 
+                  None, 
+                  globals())
+    #console.interact(BANNER)
     return 0
 
 
