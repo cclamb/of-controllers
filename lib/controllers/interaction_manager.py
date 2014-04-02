@@ -29,10 +29,9 @@ class InteractionManager(object):
     
     def _notify_listeners(self):
         global notify_mutex
-        nets = deepcopy(self._networks)
         notify_mutex.acquire()
         for listener in self._listeners:
-            listener(deepcopy(nets))
+            listener(deepcopy(self._networks))
         notify_mutex.release()
     
     def set_networks(self, nets):
