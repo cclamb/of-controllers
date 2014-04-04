@@ -32,7 +32,7 @@ class S2HNTreeTopo(Topo):
                 host = self.addHost('h%d' % (h_idx))
                 h_idx += 1
                 self.addLink(host, switch)
-            
+
 
 def run():
     setLogLevel('info')
