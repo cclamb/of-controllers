@@ -2,7 +2,7 @@ __author__ = 'cclamb'
 
 import json
 
-def create_network_file(file_name):
+def create_network_from_file(file_name):
     fh, nets = open(file_name), None
     try:
         nets = json.load(fh)
@@ -11,7 +11,7 @@ def create_network_file(file_name):
     return nets
 
 
-def create_network_json(json):
+def create_network_from_json(json):
     return json.loads(json)
 
 

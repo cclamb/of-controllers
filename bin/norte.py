@@ -30,12 +30,15 @@ sys.argv.append(CONTROLLER_NAME)
 
 manager = get_manager()
 
+def create_network_C():
+    print('okay.')
+
 
 def initialize():
     print('...initializing Norte environment...')
     while manager.count < 1:
         time.sleep(1)
-    nets = create_network_file('etc/mac-networks.js')
+    nets = create_network_from_file('etc/mac-networks.js')
     manager.set_networks(nets)
 
 
@@ -58,12 +61,10 @@ def run_main():
     thread.start_new_thread(test_main, ())
     sys.ps1 = '(%s) >>> ' % NAME
     sys.ps2 = '(%s) ... ' % NAME
-    #console = code.InteractiveConsole(globals())
     initialize()
     code.interact(BANNER, 
                   None, 
                   globals())
-    #console.interact(BANNER)
     return 0
 
 
