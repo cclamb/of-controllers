@@ -35,7 +35,7 @@ def create_network_C():
 
 
 def initialize():
-    print('...initializing Norte environment...')
+    print('...dynamically creating networks...')
     while manager.count < 1:
         time.sleep(1)
     nets = create_network_from_file('etc/mac-networks.js')
