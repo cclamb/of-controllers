@@ -1,6 +1,8 @@
 __author__ = 'cclamb'
 
+
 import json
+
 
 def create_network_from_file(file_name):
     fh, nets = open(file_name), None

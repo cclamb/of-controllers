@@ -30,16 +30,37 @@ sys.argv.append(CONTROLLER_NAME)
 
 manager = get_manager()
 
-def create_network_C():
-    print('okay.')
+def active_networks():
+    networks = manager.get_networks()
+    for key in networks.keys():
+        print('Network %s is active and contains:' % key)
+        hosts = networks[key]
+        for host in hosts:
+            print('\t%s' % host)
+
+
+def create_large_network():
+   create_network('etc/mac-networks-charlie.js')
+
+
+def create_small_network():
+    create_network('etc/mac-networks-small.js')
+
+
+def create_standard_network():
+    create_network('etc/mac-networks.js')
+
+
+def create_network(file_name):
+    nets = create_network_from_file(file_name)
+    manager.set_networks(nets)    
 
 
 def initialize():
     print('...dynamically creating networks...')
     while manager.count < 1:
         time.sleep(1)
-    nets = create_network_from_file('etc/mac-networks.js')
-    manager.set_networks(nets)
+    create_standard_network()
 
 
 def pox_main():
@@ -49,7 +70,7 @@ def pox_main():
 def test_main():
     global manager
     def listener(nets):
-        print(nets)
+        active_networks()
     manager.add_listener(listener)
     while True: # Do I need this?
         time.sleep(1)

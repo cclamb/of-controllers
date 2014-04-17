@@ -35,12 +35,12 @@ class InteractionManager(object):
         notify_mutex.release()
     
     def set_networks(self, nets):
-        global networks
+        #global networks
         self._networks = deepcopy(nets)
         self._notify_listeners()
 
     def get_networks(self):
-        global networks
+        #global networks
         nets = {}
         nets = deepcopy(self._networks)
         return nets
